@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>挂机商店 - 闲置经营游戏</title>
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <div class="game-container">
+            <!-- 顶部资源栏 -->
+            <div class="resource-bar">
+                <div class="resource-item">
+                    <i class="fas fa-coins"></i>
+                    <span class="resource-value">{{ formatNumber(gold) }}</span>
+                    <span class="resource-label">金币</span>
+                </div>
+                <div class="resource-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="resource-value">{{ formatNumber(goldPerSecond) }}</span>
+                    <span class="resource-label">金币/秒</span>
+                </div>
+                <div class="resource-item">
+                    <i class="fas fa-clock"></i>
+                    <span class="resource-value">{{ playTime }}</span>
+                    <span class="resource-label">游玩时间</span>
+                </div>
+            </div>
+
+            <!-- 主要内容区 -->
+            <div class="main-content">
+                <!-- 左侧：点击区域 -->
+                <div class="click-area" @click="manualClick">
+                    <div class="click-icon">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div class="click-text">
+                        点击经营
+                    </div>
+                    <div class="click-value">
+                        +{{ formatNumber(clickPower) }} 金币
+                    </div>
+                    <div v-if="lastClickGain > 0" class="floating-number">
+                        +{{ formatNumber(lastClickGain) }}
+                    </div>
+                </div>
+
+                <!-- 右侧：升级选项 -->
+                <div class="upgrade-panel">
+                    <h3><i class="fas fa-chart-simple"></i> 升级选项</h3>
+                    
+                    <div class="upgrade-card" @click="upgradeClick">
+                        <div class="upgrade-icon">
+                            <i class="fas fa-hand-peace"></i>
+                        </div>
+                        <div class="upgrade-info">
+                            <div class="upgrade-name">点击强化</div>
+                            <div class="upgrade-desc">每次点击 +{{ formatNumber(clickPower) }} 金币</div>
+                        </div>
+                        <div class="upgrade-cost">
+                            <i class="fas fa-coins"></i>
+                            {{ formatNumber(clickUpgradeCost) }}
+                        </div>
+                        <div class="upgrade-level">
+                            Lv.{{ clickLevel }}
+                        </div>
+                    </div>
+
+                    <div class="upgrade-card" @click="upgradeWorker">
+                        <div class="upgrade-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="upgrade-info">
+                            <div class="upgrade-name">雇佣工人</div>
+                            <div class="upgrade-desc">每秒 +{{ formatNumber(workerIncome) }} 金币</div>
+                        </div>
+                        <div class="upgrade-cost">
+                            <i class="fas fa-coins"></i>
+                            {{ formatNumber(workerUpgradeCost) }}
+                        </div>
+                        <div class="upgrade-level">
+                            {{ workerCount }} 人
+                        </div>
+                    </div>
+
+                    <div class="upgrade-card" @click="upgradeShop">
+                        <div class="upgrade-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="upgrade-info">
+                            <div class="upgrade-name">商铺升级</div>
+                            <div class="upgrade-desc">所有收入 +{{ formatNumber(shopBonus * 100) }}%</div>
+                        </div>
+                        <div class="upgrade-cost">
+                            <i class="fas fa-coins"></i>
+                            {{ formatNumber(shopUpgradeCost) }}
+                        </div>
+                        <div class="upgrade-level">
+                            Lv.{{ shopLevel }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部：成就/统计面板 -->
+            <div class="stats-panel">
+                <div class="stats-header" @click="showStats = !showStats">
+                    <i class="fas fa-trophy"></i> 成就与统计
+                    <i :class="showStats ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+                </div>
+                <div class="stats-content" v-show="showStats">
+                    <div class="achievement-grid">
+                        <div v-for="ach in achievements" :key="ach.id" 
+                             class="achievement-card" 
+                             :class="{ unlocked: ach.unlocked }">
+                            <i :class="ach.icon"></i>
+                            <div class="achievement-name">{{ ach.name }}</div>
+                            <div class="achievement-desc">{{ ach.desc }}</div>
+                            <div class="achievement-progress" v-if="!ach.unlocked">
+                                {{ formatNumber(ach.progress) }} / {{ formatNumber(ach.requirement) }}
+                            </div>
+                            <div class="achievement-badge" v-else>
+                                <i class="fas fa-check-circle"></i> 已达成
+                            </div>
+                        </div>
+                    </div>
+                    <div class="total-stats">
+                        <div><i class="fas fa-hand-peace"></i> 总点击: {{ formatNumber(totalClicks) }}</div>
+                        <div><i class="fas fa-coins"></i> 总金币: {{ formatNumber(totalGoldEarned) }}</div>
+                        <div><i class="fas fa-rocket"></i> 最高秒收: {{ formatNumber(maxGoldPerSecond) }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reset-btn" @click="resetGame">
+                <i class="fas fa-undo-alt"></i> 重置游戏
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
